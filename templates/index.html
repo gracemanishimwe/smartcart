@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartCart Product search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="SmartCart home"><span class="brand-mark"></span> smartcart<span class="brand-dot">.</span></a>
+    <span class="topbar-note"><span class="status-dot"></span> Huye, Rwanda</span>
+  </header>
+
+  <main>
+    <section class="search-band">
+      <div class="intro">
+        <p class="eyebrow">SMARTER SHOPPING, MADE SIMPLE</p>
+        <h1>Find your next<br><span>good thing.</span></h1>
+        <p class="lede">Search products and see your full cost, including SmartCart's 10% service commission.</p>
+      </div>
+      <form class="search-form" method="post">
+        <label for="product_name">What are you looking for?</label>
+        <label class="source-label" for="source">Product source</label>
+        <select id="source" name="source">
+          <option value="amazon" {% if source == 'amazon' %}selected{% endif %}>Amazon</option>
+          <option value="demo" {% if source == 'demo' %}selected{% endif %}>Demo catalog (sample data)</option>
+        </select>
+        <div class="search-control">
+          <input id="product_name" name="product_name" value="{{ term }}" placeholder="Try wireless headphones" required>
+          <button type="submit"><span>Search products</span><span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="student-fields">
+          <label>Excel file details
+            <span class="identity-inputs">
+              <input name="first_name" value="{{ identity.first_name }}" placeholder="First name" autocomplete="given-name" required>
+              <input name="last_name" value="{{ identity.last_name }}" placeholder="Last name" autocomplete="family-name" required>
+              <input name="registration_number" value="{{ identity.registration_number }}" placeholder="Registration no." required>
+            </span>
+          </label>
+        </div>
+        <p class="form-note">Search results include product prices, ratings and the SmartCart commission.</p>
+      </form>
+    </section>
+
+    <section class="results" aria-live="polite">
+      {% if error %}
+        <div class="notice" role="status">{{ error }}</div>
+      {% endif %}
+
+      {% if products %}
+        <div class="results-heading">
+          <div>
+            <p class="eyebrow">PRODUCT SEARCH</p>
+            <h2>Results for “{{ term }}”</h2>
+            <p class="result-count">{{ products|length }} products · {{ 'Demo catalog sample' if source == 'demo' else 'Amazon' }} · {% if cache_hit %}Loaded from recent search{% else %}Fresh search{% endif %}</p>
+          </div>
+          {% if export_filename %}<a class="download-link" href="{{ url_for('download_export', filename=export_filename) }}"><span aria-hidden="true">↓</span> Download Excel</a>{% endif %}
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>Price</th><th>Commission</th><th>Total</th><th>Rating</th><th>Retailer</th></tr></thead>
+            <tbody>
+              {% for product in products %}
+                <tr>
+                  <td class="product-cell">
+                    {% if product.Product_picture_name != 'Not downloaded' %}<img src="{{ url_for('product_picture', filename=product.Product_picture_name) }}" alt="" loading="lazy">{% else %}<span class="image-placeholder">SC</span>{% endif %}
+                    <span>{{ product.Product_Name }}<small>{{ product.Product_picture_name }}</small></span>
+                  </td>
+                  <td>${{ '%.2f'|format(product.Product_Price) }}</td>
+                  <td>${{ '%.2f'|format(product.Commission_fee) }}</td>
+                  <td class="total-cell">${{ '%.2f'|format(product.Total_price) }}</td>
+                  <td>{{ product.global_rating }}</td>
+                  <td>{{ product.retailer_name }}<small>{{ product.Retailer_email }}</small></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state"><span class="empty-icon">⌕</span><div><h2>Your next find starts here</h2><p>Search a product name to compare its price and SmartCart total.</p></div></div>
+      {% endif %}
+    </section>
+  </main>
+  <footer><span>SMARTCART SOLUTIONS LTD</span><span>Product search · 10% service commission</span></footer>
+</body>
+</html>
